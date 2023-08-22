@@ -5,8 +5,12 @@
 {% endblock %}
 
 {% block content %}
+    {% if leaderboard|length == 0 %}
+    <p>Nothing here :P</p>
+    {% else %}
     {% for tournament in tournaments %}
         <a href="{{ tournament['url'] }}" target="_blank">{{ tournament["title"] }}</p>
     {% endfor %}
+    {% endif %}
 
 {% endblock %}

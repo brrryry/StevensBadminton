@@ -1,12 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-    <h1>{% block title %}View Ranked Tournaments{% endblock %}</h1>
+    <h1>{% block title %}View Leaderboard{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
+    {% if leaderboard|length == 0 %}
+    <p>Nothing here :P</p>
+    {% else %}
     <a href="/leaderboard?sortBy=bp">Sort By BP</a>
     <a href="/leaderboard?sortBy=elo">Sort By ELO</a>
+    
+        
     <table>
         <tr>
             <th>Position</th>
@@ -23,6 +28,8 @@
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
+
 
 
 {% endblock %}

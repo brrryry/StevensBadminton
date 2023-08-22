@@ -5,12 +5,9 @@
 {% endblock %}
 
 {% block content %}
-    {% for participant in participants %}
-        <p>{{ participant }}</p>
-    {% endfor %}
+    <p>Please enter a BracketHQ link with either a completed tournament or a completed league night!</p>
     <form method="post">
         <input type="text" id="TournamentURL" name="Tournament URL">
-        
         <input type="submit" name="submit_button" value="Submit URL">
     </form>
 {% endblock %}

@@ -6,3 +6,4 @@ lib/*
 tests/*
 pyvenv.cfg
 flaskr/__pycache__/*
+instance/*
