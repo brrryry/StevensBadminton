@@ -32,7 +32,7 @@ def create_app(test_config=None):
     app.register_blueprint(events.bp)
 
     with app.app_context():
-        #print(json.dumps(getLeagueData('https://brackethq.com/b/zrsnb/'), indent=4))
+        #print(json.dumps(getEventData('https://brackethq.com/b/zrsnb/'), indent=4))
         pass
 
     @app.route('/')

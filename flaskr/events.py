@@ -22,93 +22,59 @@ def create():
 
         if request.form['submit_button'] == 'Submit URL':
             
-            url = request.form['Tournament URL']
+            url = request.form['Event URL']
 
-            tournaments = db.execute(
+            events = db.execute(
                 f'SELECT * FROM events WHERE url = "{url}"'
             ).fetchall()
-            if len(tournaments) > 0: error = "Error: Tournament has already been recorded."
+            if len(events) > 0: error = "Error: Event has already been recorded."
 
-            tournamentData = getTournamentData(url)
+            eventData = getEventData(url)
 
-            if "error" in tournamentData: 
-                if tournamentData["error"] == "Try League Night?":
-                    tournamentData = getLeagueData(url)
-                    if "error" in tournamentData: error = "Error: " + tournamentData["error"]
-                else: error = "Error: " + tournamentData["error"]
+            if "error" in eventData: error = "Error: " + eventData["error"]
+
             
             if error is not None:
                 flash(error)
                 return render_template('events/record.html')
             else:
-                if 'Tournament' in tournamentData["title"]:
-                    tournamentTitle = tournamentData["title"]
-                    tournamentURL = url
 
-                    db.execute(
-                        'INSERT INTO events (url, title, participants, teamsize, rankings) VALUES (?, ?, ?, ?, ?)', (tournamentURL, tournamentTitle, ", ".join(tournamentData["participants"]), tournamentData["teamsize"], 
-                            ",".join([" & ".join(team) for team in tournamentData["rankings"]] ))
-                    )
+                eventTitle = eventData["title"]
+                eventURL = url
 
-                    db.commit()
+                db.execute(
+                    'INSERT INTO events (url, title, participants, teamsize, rankings) VALUES (?, ?, ?, ?, ?)', (eventURL, eventTitle, ", ".join(eventData["participants"]), eventData["teamsize"], 
+                        ",".join([" & ".join(team) for team in eventData["rankings"]]))
+                )
 
-                    #loop through each match
-                    winnersbracket = tournamentData['winners']
-                    for round in winnersbracket:
-                        for game in winnersbracket[round]:
-                            recordMatch({
-                                "title": f'{tournamentTitle} Winners Bracket ({round.capitalize()})',
-                                "tournament": 1,
-                                "winner": game['winner'],
-                                "loser": game['loser']
-                            })
-                    
-                    losersbracket = tournamentData['losers']
-                    for round in losersbracket:
-                        for game in losersbracket[round]:
-                            recordMatch({
-                                "title": f'{tournamentTitle} Losers Bracket ({round.capitalize()})',
-                                "tournament": 1,
-                                "winner": game['winner'],
-                                "loser": game['loser']
-                            })
+                db.commit()
 
-                    #Record rankings
-                    if tournamentData["tournament"] > 0: recordRankings(tournamentData["rankings"], tournamentData["tournament"])
+                #loop through each match
+                for game in eventData["games"]:
+                    recordMatch({
+                        "title": f'{eventTitle} ({game.partition("_")[0]})',
+                        "tournament": eventData["tournament"],
+                        "winner": eventData["games"][game]["winner"],
+                        "loser": eventData["games"][game]["loser"],
+                    })
 
+                #Record rankings
+                if len(eventData["rankings"]) > 0: 
+                    recordRankings(eventData["rankings"], eventData["tournament"])
                     flash("Tournament Input Successful!")
-                    return render_template('events/record.html')
-                else:
-                    leagueTitle = tournamentData["title"]
-                    leagueURL = url
+                else: flash("League Night Input Successful!")
 
-                    db.execute(
-                        'INSERT INTO events (url, title, participants, teamsize) VALUES (?, ?, ?, ?)', (leagueURL, leagueTitle, ", ".join(tournamentData["participants"]), tournamentData["teamsize"])
-                    )
-
-                    db.commit()
-
-                    for group in tournamentData["groups"].keys():
-                        for game in tournamentData["groups"][group]:
-                            recordMatch({
-                                "title": f'{leagueTitle} ({group})',
-                                "tournament": 0,
-                                "winner": game['winner'],
-                                "loser": game['loser']
-                            })
-                    flash("League Night Input Successful!")
-                    return render_template('events/record.html')
-
+                return render_template('events/record.html')
     else:
         return render_template('events/record.html')
 
 @bp.route('/view')
 def viewTournaments():
     db = get_db()
-    tournaments = db.execute(
+    events = db.execute(
         f'SELECT * FROM events'
     ).fetchall()
-    return render_template('events/view.html', tournaments=tournaments)
+    return render_template('events/view.html', events=events)
 
 
 

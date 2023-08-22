@@ -42,89 +42,9 @@ JSON Object (getTournamentData)
 }
 
 """
-def getLeagueData(url):
-    leagueData = {}
-    leagueData["tournament"] = 0
-    teamSize = 1
 
-    if not validators.url(url): return {"error": "Invalid URL"}
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) Gecko/20030624 Netscape/7.1 (ax)',
-    }
-
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-
-    #Get Tournament HTML
-    with Chrome(options=options) as browser:
-        browser.get(url)
-        html = browser.page_source
-
-    soup = BeautifulSoup(html, "html.parser")
-
-    title = soup.find("h2", {"class": "bracket-title"})
-    if title == None: return {"error": "Invalid URL"}
-
-    title = title.getText()
-    leagueData["title"] = title
-
-    #Getting Participants
-    participants = []
-    participantDivs = soup.find_all("div", {"class": "participant"})
-    for participantDiv in participantDivs:
-        participant = participantDiv.find("input").get('value')
-        participants.append(participant)
-    leagueData["participants"] = participants
-    
-    leagueData["groups"] = {}
-
-    groups = soup.find_all("div", {"class": "group"})
-    for group in groups:
-        groupTitle = group.get('id').upper()
-        groupData = []
-
-        games = group.find_all("div", {"class": "game-completed"})
-
-        for game in games:
-
-            loser = game.find("div", {"class": "slot-loser"})
-
-            loserScore = loser.find("div", {"class": "slot-score-val"})
-            if(loserScore.find_all("set")): loserScore = [int(set.getText()) for set in loserScore.find_all("set")]
-            else: loserScore = [int(loserScore.getText())]
-
-            loserName = loser.find("div", {"class": "slot-name"}).getText().split(" & ")
-            if len(loserName) > 1: teamSize = 2
-
-            winner = game.find("div", {"class": "slot-winner"})
-
-            winnerScore = winner.find("div", {"class": "slot-score-val"})
-            if(winnerScore.find_all("set")): winnerScore = [int(set.getText()) for set in winnerScore.find_all("set")]
-            else: winnerScore = [int(winnerScore.getText())]
-
-            winnerName = winner.find("div", {"class": "slot-name"}).getText().split(" & ")
-
-            groupData.append({
-                "winner": {
-                    "name": winnerName,
-                    "score": winnerScore
-                },
-                "loser": {
-                    "name": loserName,
-                    "score": loserScore
-                }
-            })
-        leagueData["groups"][groupTitle] = groupData
-
-    leagueData["teamsize"] = teamSize
-
-    return leagueData
-
-    
-
-def getTournamentData(url):
-    tournamentData = {}
+def getEventData(url):
+    eventData = {}
     tournament_value = 0
     teamSize = 1
 
@@ -149,13 +69,14 @@ def getTournamentData(url):
     if title == None: return {"error": "Invalid URL"}
 
     title = title.getText()
-    tournamentData["title"] = title
+    eventData["title"] = title
 
     if "Tournament" in title:
         if "Mini" in title: tournament_value += 1
         elif "Major" in title: tournament_value += 2
-    else: return {"error": "Try League Night?"}
-    tournamentData["tournament"] = tournament_value
+
+    eventData["tournament"] = tournament_value
+    eventData["games"] = {}
 
     #Getting Participants
     participants = []
@@ -163,40 +84,42 @@ def getTournamentData(url):
     for participantDiv in participantDivs:
         participant = participantDiv.find("input").get('value')
         participants.append(participant)
-    tournamentData["participants"] = participants
+    eventData["participants"] = participants
 
-    tournamentData["winners"] = {}    
-    tournamentData["losers"] = {}
-    #Getting Winners Bracket
-    winnersbracket = soup.find("div", {"class": "winners"})
-    winnersrounds = winnersbracket.find_all("div", {"class": "round"})
-    for round in winnersrounds:
-        roundName = round.get('class')[1]
-        if 'round-advance' in round.get('class'): roundName += "A"
-        if 'round-finals' in round.get('class'): roundName = "Finals"
 
-        roundData = []
-        games = round.find_all("div", {"class": "game-completed"})
-        for game in games:
+    games = soup.find_all("div", {"class": "game-completed"})
+    titlecounter = 0
+    for game in games:
+        gameTitle = ""
+        
+        if game.parent.get('id') != None:
+            gameTitle += game.parent.get('id').upper() + "_" + str(titlecounter)
+        else:
+            gameTitle += game.parent.get('class')[1].upper()
+            if 'round-advance' in game.parent.get('class'): roundName += "A"
+            if 'round-finals' in game.parent.get('class'): roundName = "FINALS"
+            else: gameTitle += "_" + str(titlecounter)
+            gameTitle = game.parent.parent.get('class')[0].upper() + "-" + gameTitle
+        titlecounter += 1
 
-            loser = game.find("div", {"class": "slot-loser"})
+        loser = game.find("div", {"class": "slot-loser"})
 
-            loserScore = loser.find("div", {"class": "slot-score-val"})
-            if(loserScore.find_all("set")): loserScore = [int(set.getText()) for set in loserScore.find_all("set")]
-            else: loserScore = [int(loserScore.getText())]
+        loserScore = loser.find("div", {"class": "slot-score-val"})
+        if(loserScore.find_all("set")): loserScore = [int(set.getText()) for set in loserScore.find_all("set")]
+        else: loserScore = [int(loserScore.getText())]
 
-            loserName = loser.find("div", {"class": "slot-name"}).getText().split(" & ")
-            if len(loserName) > 1: teamSize = 2
+        loserName = loser.find("div", {"class": "slot-name"}).getText().split(" & ")
+        if len(loserName) > 1: teamSize = 2
 
-            winner = game.find("div", {"class": "slot-winner"})
+        winner = game.find("div", {"class": "slot-winner"})
 
-            winnerScore = winner.find("div", {"class": "slot-score-val"})
-            if(winnerScore.find_all("set")): winnerScore = [int(set.getText()) for set in winnerScore.find_all("set")]
-            else: winnerScore = [int(winnerScore.getText())]
+        winnerScore = winner.find("div", {"class": "slot-score-val"})
+        if(winnerScore.find_all("set")): winnerScore = [int(set.getText()) for set in winnerScore.find_all("set")]
+        else: winnerScore = [int(winnerScore.getText())]
 
-            winnerName = winner.find("div", {"class": "slot-name"}).getText().split(" & ")
+        winnerName = winner.find("div", {"class": "slot-name"}).getText().split(" & ")
 
-            roundData.append({
+        eventData["games"][gameTitle] = {
                 "winner": {
                     "name": winnerName,
                     "score": winnerScore
@@ -205,62 +128,24 @@ def getTournamentData(url):
                     "name": loserName,
                     "score": loserScore
                 }
-            })
-
-        tournamentData["winners"][roundName] = roundData
-
-    #Getting Losers Bracket
-    losersbracket = soup.find("div", {"class": "losers"})
-    losersrounds = losersbracket.find_all("div", {"class": "round"})
-    for round in losersrounds:
-        roundName = round.get('class')[1]
-        if 'round-advance' in round.get('class'): roundName += "A"
-
-        roundData = []
-        games = round.find_all("div", {"class": "game-completed"})
-        for game in games:
-
-            loser = game.find("div", {"class": "slot-loser"})
-
-            loserScore = loser.find("div", {"class": "slot-score-val"})
-            if(loserScore.find_all("set")): loserScore = [set.getText() for set in loserScore.find_all("set")]
-            else: loserScore = [loserScore.getText()]
-
-            loserName = loser.find("div", {"class": "slot-name"}).getText().split(" & ")
-
-            winner = game.find("div", {"class": "slot-winner"})
-
-            winnerScore = winner.find("div", {"class": "slot-score-val"})
-            if(winnerScore.find_all("set")): winnerScore = [set.getText() for set in winnerScore.find_all("set")]
-            else: winnerScore = [winnerScore.getText()]
-
-            winnerName = winner.find("div", {"class": "slot-name"}).getText().split(" & ")
-
-            roundData.append({
-                "winner": {
-                    "name": winnerName,
-                    "score": winnerScore
-                },
-                "loser": {
-                    "name": loserName,
-                    "score": loserScore
-                }
-            })
-
-        tournamentData["losers"][roundName] = roundData
+            }
+        
 
     #Getting Final Rankings
-    rankings = []
-    for round in tournamentData["losers"]:
-        for game in tournamentData["losers"][round]:
-            rankings.append(game['loser']['name'])
-    rankings.append(tournamentData["winners"]["Finals"][-1]["loser"]["name"])
-    rankings.append(tournamentData["winners"]["Finals"][-1]["winner"]["name"])
-    tournamentData["rankings"] = rankings[::-1]
+    eventData["rankings"] = []
+    if tournament_value > 0:
+        rankings = []
+        for gameName in eventData["games"]:
+            if "LOSERS" in gameName:
+                rankings.append(eventData["games"][gameName]["loser"]["name"])
+        
+        rankings.append(eventData["games"]["WINNERS-ROUND-FINALS"]["loser"]["name"])
+        rankings.append(eventData["games"]["WINNERS-ROUND-FINALS"]["winner"]["name"])
 
-    tournamentData["teamsize"] = teamSize
+        eventData["rankings"] = rankings[::-1]
 
-    return tournamentData
+    eventData["teamsize"] = teamSize
+    return eventData
 
 
 #oldElos will be a value of two ELOS [winner, loser], returns the points gained/lost
