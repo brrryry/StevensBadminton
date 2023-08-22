@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Profile: {{ player["name"] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+    <h3>ID: {{ player["id"] }}</h3>
+    <h3>Name: {{ player["name"] }}</h3>
+    <h3>Badminton Points (BP): {{ player["bp"] }}</h3>
+    <h3>ELO Rating: {{ player["elo"] }}</h3>
+
+    <table>
+        {% if matchhistory1|length > 0 %}
+        <h2>Match History (1v1)</h2>
+        <tr>
+            <th>Match Title</th>
+            <th>Winner</th>
+            <th>Loser</th>
+            <th>Tournament Value</th>
+        </tr>
+        {% else %}
+        <h2>No Match History Found (1v1)</h2>
+        {% endif %}
+        {% for match in matchhistory1 %}
+        <tr>
+            <td>{{ match["title"] }}</td>
+            <td>{{ match["winner"]["name"] }} ({{ match["winner"]["score"] }})</td>
+            <td>{{ match["loser"]["name"] }} ({{ match["loser"]["score"] }})</td>
+            <td>{{ match["tournament"] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <table>
+        {% if matchhistory2|length > 0 %}
+        <h2>Match History (2v2)</h2>
+        <tr>
+            <th>Match Title</th>
+            <th>Winners</th>
+            <th>Losers</th>
+            <th>Tournament Value</th>
+        </tr>
+        {% else %}
+        <h2>No Match History Found (2v2)</h2>
+        {% endif %}
+        {% for match in matchhistory2 %}
+        <tr>
+            <td>{{ match["title"] }}</td>
+            <td>{{ match["winner"]["name"] }} ({{ match["winner"]["score"] }})</td>
+            <td>{{ match["loser"]["name"] }} ({{ match["loser"]["score"] }})</td>
+            <td>{{ match["tournament"] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p>Reference for Tournament Values:</p>
+    <p>2 - Major Tournament Value</p>
+    <p>1 - Mini Tournament Value</p>
+    <p>0 - League Night / Casual Match</p>
+
+
+
+{% endblock %}

@@ -1,0 +1,20 @@
+<!doctype html>
+
+<title>StevensBadminton - {% block title %}{% endblock %}</title>
+
+<nav>
+  <a href="/">Home</a>
+  <a href="/events/record">Record Events</a>
+  <a href="/events/view">View Recorded Events</a>
+  <a href="/leaderboard">View Leaderboard</a>
+</nav>
+
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>

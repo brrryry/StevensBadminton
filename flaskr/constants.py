@@ -1,0 +1,1 @@
+challonge_key = "i5RuYNgSCHIMsPIJEtAADdaKn4uhLOgVzXrtxBAS"

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Record Tournaments{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% for participant in participants %}
+        <p>{{ participant }}</p>
+    {% endfor %}
+    <form method="post">
+        <input type="text" id="TournamentURL" name="Tournament URL">
+        
+        <input type="submit" name="submit_button" value="Submit URL">
+    </form>
+{% endblock %}

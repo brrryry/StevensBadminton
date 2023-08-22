@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}View Ranked Tournaments{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% for tournament in tournaments %}
+        <a href="{{ tournament['url'] }}" target="_blank">{{ tournament["title"] }}</p>
+    {% endfor %}
+
+{% endblock %}

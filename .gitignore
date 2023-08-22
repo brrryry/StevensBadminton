@@ -1,0 +1,8 @@
+.venv/*
+.vscode/*
+bin/*
+include/*
+lib/*
+tests/*
+pyvenv.cfg
+flaskr/__pycache__/*
